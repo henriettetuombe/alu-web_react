@@ -24,3 +24,4 @@ describe('<CourseListRow />', () => {
         expect(wrapper.find('tr td')).toHaveLength(2);
     })
 });
+	
