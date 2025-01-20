@@ -13,3 +13,4 @@ describe('<Footer />', () => {
         expect(wrapper.find('.App-footer p').text()).toContain('Copyright');
     });
 });
+    
