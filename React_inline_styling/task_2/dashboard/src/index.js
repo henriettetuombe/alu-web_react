@@ -4,20 +4,20 @@ import App from './App/App';
 import { Notifications } from './Notifications/Notifications';
 
 const rootId = document.getElementById("root");
-
+// isLoggedIn={true}
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  rootId
+  <>
+      <App />
+    </>,
+    rootId
 );
 
 if (module.hot && process.env.NODE_ENV === "development") {
-  module.hot.accept('./App/App', () => {
-    const NextApp = require('./App/App').default;
+  module.hot.accept("./App", () => {
+    const NextApp = require("./App").default;
     ReactDOM.render(
       <React.StrictMode>
-        <NextApp />
+        <App />
       </React.StrictMode>,
       rootId
     );
