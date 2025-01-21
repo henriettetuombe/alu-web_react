@@ -40,3 +40,4 @@ describe('<CourseList />', () => {
         expect(wrapper.find(CourseListRow).get(4).props.isHeader).toBe(false);
     });
 });
+    
