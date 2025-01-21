@@ -1,17 +1,19 @@
-// Return the current year
 export function getFullYear() {
     return new Date().getFullYear();
-}
-
-export function getFooterCopy(isIndex) {
+  }
+  
+  export function getFooterCopy(isIndex) {
+    let msg;
+  
     if (isIndex) {
-        return 'Holberton School.';
+      msg = "Holberton School";
+    } else {
+      msg = "Holberton School main dashboard";
     }
-    else {
-        return 'Holberton School main dashboard';
-    }
-}
-
-export function getLatestNotification() {
-    return {__html: '<strong>Urgent requirement</strong> - complete by EOD'};
-}
+  
+    return msg;
+  }
+  
+  export function getLatestNotification() {
+    return "<strong>Urgent requirement</strong> - complete by EOD";
+  }

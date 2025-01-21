@@ -1,198 +1,177 @@
-import React from 'react';
-import { shallow } from 'enzyme';
-import { getLatestNotification } from '../utils/utils';
-import Notifications from './Notifications';
-import NotificationItem from './NotificationItem';
-import { StyleSheetTestUtils } from 'aphrodite';
+import { shallow, mount } from "enzyme";
+import React from "react";
+import Notifications from "./Notifications";
+import { getLatestNotification } from "../utils/utils";
+import { StyleSheetTestUtils } from "aphrodite";
 
-beforeEach(() => {
-	StyleSheetTestUtils.suppressStyleInjection();
-});
-afterEach(() => {
-	StyleSheetTestUtils.clearBufferAndResumeStyleInjection();
-});
+describe("<Notifications />", () => {
+  let listNotifications;
+  let latestNotification;
 
-const listNotifications = [
-	{ id: 1, type: 'default', value: 'New course available' },
-	{ id: 2, type: 'urgent', value: 'New resume available' },
-	{ id: 3, type: 'urgent', html: getLatestNotification() },
-];
+  beforeAll(() => {
+    StyleSheetTestUtils.suppressStyleInjection();
+  });
+  afterAll(() => {
+    StyleSheetTestUtils.clearBufferAndResumeStyleInjection();
+  });
 
-describe('Notification tests', () => {
-	it('renders Notification component without crashing', () => {
-		const wrapper = shallow(<Notifications />);
+  it("Notifications renders without crashing", () => {
+    const wrapper = shallow(<Notifications />);
+    expect(wrapper.exists()).toEqual(true);
+  });
 
-		expect(wrapper).toBeDefined();
-	});
+  it("menu item is being displayed when displayDrawer is false", () => {
+    const wrapper = shallow(<Notifications />);
+    wrapper.update();
+    const item = wrapper.find("div#menuItem");
+    expect(item).toHaveLength(1);
+  });
+  it("div.Notifications is not being displayed when displayDrawer is false", () => {
+    const wrapper = shallow(<Notifications />);
+    wrapper.update();
+    const item = wrapper.find("div#Notifications");
+    expect(item).toHaveLength(0);
+  });
+  it("menu item is being displayed when displayDrawer is true", () => {
+    const wrapper = shallow(<Notifications displayDrawer />);
+    wrapper.update();
+    const item = wrapper.find("div#menuItem");
+    expect(item).toHaveLength(1);
+  });
+  it("div.Notifications is being displayed when displayDrawer is true", () => {
+    const wrapper = shallow(<Notifications displayDrawer />);
+    wrapper.update();
+    const item = wrapper.find("div#Notifications");
+    expect(item).toHaveLength(1);
+  });
 
-	it('renders correct list items', () => {
-		const wrapper = shallow(
-			<Notifications
-				displayDrawer={true}
-				listNotifications={listNotifications}
-			/>
-		);
-		expect(wrapper.find('ul').children()).toHaveLength(
-			listNotifications.length
-		);
-		wrapper.find('ul').forEach((node) => {
-			expect(node.equals(<NotificationItem />));
-		});
-		expect(wrapper.find('ul').childAt(0).html()).toEqual(
-			'<li class="default_1tsdo2i" data-notification-type="default">New course available</li>'
-		);
-		expect(wrapper.find('ul').childAt(1).html()).toEqual(
-			'<li class="urgent_137u7ef" data-notification-type="urgent">New resume available</li>'
-		);
-		expect(wrapper.find('ul').childAt(2).html()).toEqual(
-			`<li data-urgent=\"true\" class=\"urgent_137u7ef\">${getLatestNotification()}</li>`
-		);
-	});
+  describe("Notifications with listNotifications", () => {
+    beforeEach(() => {
+      latestNotification = getLatestNotification();
+      listNotifications = [
+        { id: 1, type: "default", value: "New course available" },
+        { id: 2, type: "urgent", value: "New resume available" },
+        { id: 3, type: "urgent", html: { __html: latestNotification } },
+      ];
+    });
 
-	it('renders an unordered list', () => {
-		const wrapper = shallow(
-			<Notifications
-				displayDrawer={true}
-				listNotifications={listNotifications}
-			/>
-		);
-		expect(wrapper.find('ul').children()).toHaveLength(3);
-		wrapper.find('ul').forEach((node) => {
-			expect(node.equals(<NotificationItem />));
-		});
-	});
+    it("Notifications renders Notification Items and items have correct html", () => {
+      const wrapper = mount(
+        <Notifications displayDrawer listNotifications={listNotifications} />
+      );
+      expect(wrapper.exists());
+      wrapper.update();
+      const listItems = wrapper.find("NotificationItem");
+      expect(listItems).toBeDefined();
+      expect(listItems).toHaveLength(3);
+      expect(listItems.at(0).html()).toEqual(
+        '<li data-notification-type="default">New course available</li>'
+      );
+      expect(listItems.at(1).html()).toEqual(
+        '<li data-notification-type="urgent">New resume available</li>'
+      );
+      expect(listItems.at(2).html()).toEqual(
+        `<li data-notification-type="urgent">${latestNotification}</li>`
+      );
+    });
+  });
 
-	it('renders correct text', () => {
-		const wrapper = shallow(<Notifications displayDrawer={true} />);
+  describe("Notifications without listNotifications or empty listNotifications", () => {
+    beforeEach(() => {
+      listNotifications = [];
+    });
 
-		expect(wrapper.contains(<p>Here is the list of notifications</p>)).toBe(
-			false
-		);
-	});
+    it("Notifications renders Notification Item correct with empty listNotifications", () => {
+      const wrapper = mount(
+        <Notifications displayDrawer listNotifications={listNotifications} />
+      );
+      expect(wrapper.exists());
+      wrapper.update();
+      const listItems = wrapper.find("NotificationItem");
+      expect(listItems).toHaveLength(1);
+      expect(listItems.html()).toEqual(
+        '<li data-notification-type="default">No new notification for now</li>'
+      );
+    });
 
-	it('displays menu item when displayDrawer is false', () => {
-		const wrapper = shallow(<Notifications displayDrawer={false} />);
+    it("Notifications renders Notification Item correct without listNotifications", () => {
+      const wrapper = mount(<Notifications displayDrawer />);
+      wrapper.update();
+      const listItems = wrapper.find("NotificationItem");
+      expect(listItems).toHaveLength(1);
+      expect(listItems.html()).toEqual(
+        '<li data-notification-type="default">No new notification for now</li>'
+      );
+    });
 
-		expect(wrapper.find('div.menuItem').exists()).toBe(false);
-		expect(wrapper.find('div.menuItem').html()).toEqual(
-			'<div class="menuItem"><p>Your notifications</p></div>'
-		);
-	});
+    it("when calling the function markAsRead on an instance of the component, the spy is being called with the right message", () => {
+      const wrapper = shallow(<Notifications displayDrawer />);
 
-	it('does not display notifications when displayDrawer is false', () => {
-		const wrapper = shallow(<Notifications displayDrawer={false} />);
+      console.log = jest.fn();
 
-		expect(wrapper.find('div.Notifications').exists()).toBe(false);
-	});
+      const instance = wrapper.instance();
 
-	it('does not display menuItem when displayDrawer is true', () => {
-		const wrapper = shallow(<Notifications displayDrawer={true} />);
+      const id = 5;
 
-		expect(wrapper.find('div.menuItem').exists()).toBe(false);
-	});
+      instance.markAsRead(id);
 
-	it('displays Notifications when displayDrawer is true', () => {
-		const wrapper = shallow(<Notifications displayDrawer={true} />);
+      expect(console.log).toHaveBeenCalledWith(
+        `Notification ${id} has been marked as read`
+      );
+      jest.restoreAllMocks();
+    });
 
-		expect(wrapper.find('div.Notifications').exists()).toBe(false);
-	});
+    it("does not rerender when updating the props of the component with the same list", () => {
+      const listNotifications = [
+        { id: 1, type: "default", value: "New course available" },
+        { id: 2, type: "urgent", value: "New resume available" },
+      ];
 
-	it('renders correctly when listCourses is not passed', () => {
-		const wrapper = shallow(<Notifications displayDrawer={true} />);
+      const wrapper = shallow(
+        <Notifications displayDrawer listNotifications={listNotifications} />
+      );
 
-		expect(
-			wrapper.containsMatchingElement(
-				<li data-notification-type='default'>No new notification for now</li>
-			)
-		);
-	});
+      const shouldComponentUpdate = jest.spyOn(
+        Notifications.prototype,
+        "shouldComponentUpdate"
+      );
 
-	it('renders correctly when empty array is passed', () => {
-		const wrapper = shallow(
-			<Notifications displayDrawer={true} listNotifications={[]} />
-		);
+      wrapper.setProps({ listNotifications: listNotifications });
 
-		expect(
-			wrapper.containsMatchingElement(
-				<li data-notification-type='default'>No new notification for now</li>
-			)
-		);
-	});
+      expect(shouldComponentUpdate).toHaveBeenCalled();
+      expect(shouldComponentUpdate).toHaveLastReturnedWith(false);
 
-	it('renders correctly when listNotifications is passed and with the right number of notifications', () => {
-		const wrapper = shallow(
-			<Notifications
-				displayDrawer={true}
-				listNotifications={listNotifications}
-			/>
-		);
+      jest.restoreAllMocks();
+    });
 
-		expect(wrapper.find('ul').children()).toHaveLength(3);
-		wrapper.find('ul').forEach((node) => {
-			expect(node.equals(<NotificationItem />));
-		});
-	});
+    it("does rerender when updating the props of the component with a longer list", () => {
+      let listNotifications = [
+        { id: 1, type: "default", value: "New course available" },
+        { id: 2, type: "urgent", value: "New resume available" },
+      ];
 
-	it('renders "No new notifications for now" instead of "Here is the list of notifications" when listNotifications is empty', () => {
-		const wrapper = shallow(
-			<Notifications displayDrawer={true} listNotifications={[]} />
-		);
+      const listNotifications2 = [
+        { id: 1, type: "default", value: "New course available" },
+        { id: 2, type: "urgent", value: "New resume available" },
+        { id: 3, type: "urgent", html: { __html: latestNotification } },
+      ];
 
-		expect(
-			wrapper.containsMatchingElement(<p>Here is the list of notifications</p>)
-		).toBe(false);
+      console.log(listNotifications);
+      const wrapper = shallow(
+        <Notifications displayDrawer listNotifications={listNotifications} />
+      );
 
-		expect(
-			wrapper.containsMatchingElement(
-				<li data-notification-type='default'>No new notification for now</li>
-			)
-		);
-	});
+      const shouldComponentUpdate = jest.spyOn(
+        Notifications.prototype,
+        "shouldComponentUpdate"
+      );
 
-	it('doesnt re-render when the list passed as prop is the same', () => {
-		const wrapper = shallow(
-			<Notifications
-				displayDrawer={true}
-				listNotifications={listNotifications}
-			/>
-		);
+      wrapper.setProps({ listNotifications: listNotifications2 });
 
-		expect(wrapper.instance().shouldComponentUpdate(listNotifications)).toBe(
-			false
-		);
-	});
+      expect(shouldComponentUpdate).toHaveBeenCalled();
+      expect(shouldComponentUpdate).toHaveLastReturnedWith(true);
 
-	it('re-renders if listNotifications if listNotifications is changed', () => {
-		const newListNotifications = [
-			{ id: 1, type: 'default', value: 'New course available' },
-			{ id: 2, type: 'urgent', value: 'New resume available' },
-			{ id: 3, type: 'default', html: getLatestNotification() },
-			{ id: 4, type: 'default', value: 'Foo' },
-		];
-
-		const wrapper = shallow(
-			<Notifications
-				displayDrawer={true}
-				listNotifications={listNotifications}
-			/>
-		);
-
-		expect(wrapper.instance().shouldComponentUpdate(newListNotifications)).toBe(
-			true
-		);
-	});
-});
-
-describe('onclick event behaves as it should', () => {
-	it('should call console.log', () => {
-		const wrapper = shallow(<Notifications />);
-		const spy = jest.spyOn(console, 'log').mockImplementation();
-
-		wrapper.instance().markAsRead = spy;
-		wrapper.instance().markAsRead(1);
-		expect(wrapper.instance().markAsRead).toBeCalledWith(1);
-		expect(spy).toBeCalledTimes(1);
-		expect(spy).toBeCalledWith(1);
-		spy.mockRestore();
-	});
+      jest.restoreAllMocks();
+    });
+  });
 });
